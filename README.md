@@ -17,7 +17,7 @@ invocação de rotinas e iv ) manipulação de arrays em memória.
 ### **Requirements**
 - **Visual Studio Code**: [Download here](https://code.visualstudio.com/)
 - **P16 Assembly Extension for Visual Studio Code**: [Download here](https://marketplace.visualstudio.com/items?itemName=roby2014.p16)
-- **P16 Toolchain**: [Download Here](https://iselpt.sharepoint.com/sites/acp/Documentos%20Partilhados/Forms/AllItems.aspx?id=%2Fsites%2Facp%2FDocumentos%20Partilhados%2Ftools%2Finstaller%2FWindows%20Toolchain%20for%20P16%20Installer%2Eexe&parent=%2Fsites%2Facp%2FDocumentos%20Partilhados%2Ftools%2Finstaller&p=true&ga=1)
+- **P16 Toolchain (Bundled in the project)**: [Download Here](https://iselpt.sharepoint.com/sites/acp/Documentos%20Partilhados/Forms/AllItems.aspx?id=%2Fsites%2Facp%2FDocumentos%20Partilhados%2Ftools%2Finstaller%2FWindows%20Toolchain%20for%20P16%20Installer%2Eexe&parent=%2Fsites%2Facp%2FDocumentos%20Partilhados%2Ftools%2Finstaller&p=true&ga=1)
 
 ---
 
