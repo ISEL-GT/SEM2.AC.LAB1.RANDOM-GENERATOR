@@ -1,0 +1,69 @@
+P16 assembler v1.5 (Feb  9 2024)	c:\Isel\2Semestre\AC\Av1\Av1_Grupo03.lst	Fri Mar 21 09:22:58 2025
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      0000 0
+
+Symbols
+Name                    Type      Value       Section
+
+Code listing
+   1           	/*
+   2           	Código a implementar em C
+   3           	
+   4           	# define N 5
+   5           	
+   6           	uint16_t result [ N ] = { 17747 , 2055 , 3664 , 15611 , 9816 };
+   7           	
+   8           	uint32_t seed = 1;
+   9           	
+  10           	uint32_t umull32 ( uint32_t M , uint32_t m ) {
+  11           	
+  12           	    int64_t M_ext = M ;
+  13           	    int64_t p = m ;
+  14           	    uint8_t p_1 = 0;
+  15           	
+  16           	    for ( uint16_t i = 0; i < 32; i ++ ) {
+  17           	        if ( ( p & 0 x1 ) == 0 && p_1 == 1 ) {
+  18           	                p += M_ext << 32;
+  19           	        } else if ( ( p & 0 x1 ) == 1 && p_1 == 0 ) {
+  20           	        p -= M_ext << 32;
+  21           	        }
+  22           	        p_1 = p & 0 x1 ;
+  23           	        p > >= 1;
+  24           	    }
+  25           	    return p ;
+  26           	}
+  27           	
+  28           	void srand ( uint32_t nseed ) {
+  29           	
+  30           	    seed = nseed ;
+  31           	}
+  32           	
+  33           	uint16_t rand ( void ) {
+  34           	
+  35           	    seed = ( umull32 ( seed , 214013 ) + 2531011 ) % RAND_MAX ;
+  36           	    return ( seed >> 16 ) ;
+  37           	}
+  38           	
+  39           	int main ( void ) {
+  40           	
+  41           	    uint8_t error = 0;
+  42           	    uint16_t rand_number ;
+  43           	    uint16_t i ;
+  44           	
+  45           	    srand ( 5423 ) ;
+  46           	    for ( i = 0; error == 0 && i < N ; i ++ ) {
+  47           	        rand_number = rand () ;
+  48           	        if ( rand_number != result [ i ] ) {
+  49           	            error = 1;
+  50           	        }
+  51           	    }
+  52           	    return 0;
+  53           	}
+  54           	*/
+  55           	
+  56           	
+  57           	
+  58           	    
+  58           	
