@@ -3,25 +3,21 @@
 </p>
 
 
-## PROJECT NAME
+## PSEUDO-RANDOM NUMBER GENERATOR
 
 ### Summary
-> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+> O trabalho consiste no desenvolvimento e teste de um programa para gerar valores pseudo-
+aleatórios, envolvendo i) operações com números inteiros, ii) utilização de variáveis em memória, iii)
+invocação de rotinas e iv ) manipulação de arrays em memória.
 ###### You can find the project brief for this assignment in the [briefing](docs/assignment.pdf) file.
 
 
 ---
 
 ### **Requirements**
-- **Kotlin Compiler**: [Download here](https://kotlinlang.org/docs/command-line.html)
-- **JDK 22**: [Download here](https://www.oracle.com/java/technologies/javase/jdk22-archive-downloads.html)
-- Any other software needed to run the project.
-
----
-
-### Acknowledgements
-- Mention any people that greatly helped us complete the project, and/or made it possible.
-- Mention any resources that we used to complete this project.
+- **Visual Studio Code**: [Download here](https://code.visualstudio.com/)
+- **P16 Assembly Extension for Visual Studio Code**: [Download here](https://marketplace.visualstudio.com/items?itemName=roby2014.p16)
+- **P16 Toolchain**: [Download Here](https://iselpt.sharepoint.com/sites/acp/Documentos%20Partilhados/Forms/AllItems.aspx?id=%2Fsites%2Facp%2FDocumentos%20Partilhados%2Ftools%2Finstaller%2FWindows%20Toolchain%20for%20P16%20Installer%2Eexe&parent=%2Fsites%2Facp%2FDocumentos%20Partilhados%2Ftools%2Finstaller&p=true&ga=1)
 
 ---
 
@@ -30,6 +26,5 @@
 | Contributor        | Email                      |
 |--------------------|----------------------------|
 | Alexandre Silva    | alexandresilva.coding@gmail.com     |
-| Daniel Viegas      | viegasdaniel111@gmail.com       |
 | Duarte Rodrigues   | duarte.afonso.rodrigues@gmail.com    |
 
