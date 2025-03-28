@@ -72,17 +72,21 @@ check_p1_0:
 
 
 shift_p:
-    and r12, r2, r8
-    mov r3, r8
+    and r12, r2, r8         ;p_1 = p and 0x1
+
+    mov r3, r8              ;p[0 regist] >> 1 
     lsr r3, r3, #1
     mov r8, r3
-    mov r3, r9
+
+    mov r3, r9              ;p[1 regist] >> 1
     rrx r3, r3
     mov r9, r3
-    mov r3, r10 
+
+    mov r3, r10             ;p[2 regist] >> 1
     rrx r3, r3
     mov r10, r3
-    mov r3, r11
+    
+    mov r3, r11             ;p[3 regist] >> 1
     rrx r3, r3
     mov r11, r3
 

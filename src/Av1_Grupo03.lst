@@ -1,4 +1,4 @@
-P16 assembler v1.5 (Feb  9 2024)	c:\Isel\2Semestre\AC\SEM2.AC.LAB1.RANDOM-GENERATOR\src\Av1_Grupo03.lst	Fri Mar 28 10:38:00 2025
+P16 assembler v1.5 (Feb  9 2024)	c:\Isel\2Semestre\AC\SEM2.AC.LAB1.RANDOM-GENERATOR\src\Av1_Grupo03.lst	Fri Mar 28 10:48:15 2025
 
 Sections
 Index   Name            Address   Size
@@ -94,25 +94,29 @@ Code listing
   72           	
   73           	
   74           	shift_p:
-  75 0064 2C C4	    and r12, r2, r8
-  76 0066 03 B4	    mov r3, r8
-  77 0068 B3 E8	    lsr r3, r3, #1
-  78 006A 88 B1	    mov r8, r3
-  79 006C 83 B4	    mov r3, r9
-  80 006E 33 D8	    rrx r3, r3
-  81 0070 89 B1	    mov r9, r3
-  82 0072 03 B5	    mov r3, r10 
-  83 0074 33 D8	    rrx r3, r3
-  84 0076 8A B1	    mov r10, r3
-  85 0078 83 B5	    mov r3, r11
-  86 007A 33 D8	    rrx r3, r3
-  87 007C 8B B1	    mov r11, r3
-  88           	
-  89 007E 80 A0	    add r0, r0, #1          ;i++
-  90 0080 DA 5B	    b loop_umull32          ;for (i in 0..32)
-  91           	
-  92           	end_loop:
-  93 0082 00 B4	    mov r0, r8
-  94 0084 0F B7	    mov pc, lr
+  75 0064 2C C4	    and r12, r2, r8         ;p_1 = p and 0x1
+  76           	
+  77 0066 03 B4	    mov r3, r8              ;p[0 regist] >> 1 
+  78 0068 B3 E8	    lsr r3, r3, #1
+  79 006A 88 B1	    mov r8, r3
+  80           	
+  81 006C 83 B4	    mov r3, r9              ;p[1 regist] >> 1
+  82 006E 33 D8	    rrx r3, r3
+  83 0070 89 B1	    mov r9, r3
+  84           	
+  85 0072 03 B5	    mov r3, r10             ;p[2 regist] >> 1
+  86 0074 33 D8	    rrx r3, r3
+  87 0076 8A B1	    mov r10, r3
+  88           	    
+  89 0078 83 B5	    mov r3, r11             ;p[3 regist] >> 1
+  90 007A 33 D8	    rrx r3, r3
+  91 007C 8B B1	    mov r11, r3
+  92           	
+  93 007E 80 A0	    add r0, r0, #1          ;i++
+  94 0080 DA 5B	    b loop_umull32          ;for (i in 0..32)
   95           	
-  95           	
+  96           	end_loop:
+  97 0082 00 B4	    mov r0, r8
+  98 0084 0F B7	    mov pc, lr
+  99           	
+  99           	
