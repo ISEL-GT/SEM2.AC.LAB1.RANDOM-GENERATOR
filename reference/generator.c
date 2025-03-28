@@ -1,5 +1,4 @@
-;Código a implementar em C
-
+#include <cstdint>
 # define N 5
 
 uint16_t result [ N ] = { 17747 , 2055 , 3664 , 15611 , 9816 };
@@ -50,4 +49,3 @@ int main ( void ) {
     }
     return 0;
 }
-

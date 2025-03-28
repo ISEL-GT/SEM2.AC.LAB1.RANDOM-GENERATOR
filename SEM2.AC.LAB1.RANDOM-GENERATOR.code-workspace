@@ -1,0 +1,10 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"p16.executablePath": "c:/dev/Assembly/SEM2.AC.LAB1.RANDOM-GENERATOR/.toolchain/p16as_v1.5.0/p16as.exe"
+	}
+}

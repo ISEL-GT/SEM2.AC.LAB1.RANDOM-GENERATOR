@@ -1,0 +1,129 @@
+P16 assembler v1.5 (Feb  9 2024)	c:\dev\Assembly\SEM2.AC.LAB1.RANDOM-GENERATOR\src\generator.lst	Fri Mar 28 11:58:06 2025
+
+Sections
+Index   Name            Address   Size
+0       .data           0000      0012 18
+1       .text           0012      0078 120
+
+Symbols
+Name                    Type      Value       Section
+check_p1_0              LABEL     0056 86     .text
+check_p1_1              LABEL     004C 76     .text
+end_loop                LABEL     0086 134    .text
+first_if                LABEL     0042 66     .text
+loop_umull32            LABEL     003A 58     .text
+results                 LABEL     0004 4      .data
+results_addr            LABEL     0010 16     .data
+seed                    LABEL     0000 0      .data
+seed_addr               LABEL     000E 14     .data
+shift_p                 LABEL     0068 104    .text
+umull32                 LABEL     0012 18     .text
+
+Code listing
+   1           	.data
+   2           	
+   3           	    ; The seed and results for testing
+   4          	    seed:         .word 1, 0
+   4 0000 01 00 00 00
+   5          	    results:      .word 17747, 2055, 3664, 15611, 9816
+   5 0004 53 45 07 08 50 0E FB 3C 58 26
+   6           	
+   7           	    ; The addresses for the seed and result variables
+   8 000E 00 00	    seed_addr:    .word seed
+   9 0010 04 00	    results_addr: .word results
+  10           	
+  11           	.text
+  12           	
+  13           	
+  14           	;código da seed
+  15           	;ldr r0, seed_addr
+  16           	;ldr r2, [r0]
+  17           	;ldr r2, [r0, #2]
+  18           	
+  19           	
+  20           	umull32:                    
+  21 0012 0E 24	    push lr
+  22 0014 04 24	    push r4
+  23 0016 05 24	    push r5
+  24 0018 06 24	    push r6
+  25 001A 07 24	    push r7     
+  26 001C 08 24	    push r8 
+  27 001E 09 24	    push r9
+  28 0020 0A 24	    push r10
+  29 0022 0B 24	    push r11
+  30 0024 0C 24	    push r12          
+  31           	                            ;r[4-7] = M_ext
+  32 0026 04 B0	    mov r4, r0             
+  33 0028 85 B0	    mov r5, r1             
+  34 002A 06 60	    mov r6, #0             
+  35 002C 07 60	    mov r7, #0
+  36           	                            ;r[8-11] = p
+  37 002E 08 B1	    mov r8, r2
+  38 0030 89 B1	    mov r9, r3
+  39 0032 0A 60	    mov r10, #0
+  40 0034 0B 60	    mov r11, #0
+  41           	                            ;r12 = p_1
+  42 0036 0C 60	    mov r12, #0
+  43 0038 00 60	    mov r0, #0              ;r0 = i = 0
+  44           	loop_umull32:               ;for (i in 0..32)
+  45           	                 
+  46 003A 01 62	    mov r1, #32             ;r1 = i = 32
+  47 003C 10 B8	    cmp r1, r0              ;i == 32
+  48 003E 01 4C	    blo first_if
+  49 0040 22 58	    b end_loop              
+  50           	
+  51           	first_if:
+  52 0042 12 60	    mov r2, #1
+  53 0044 03 B4	    mov r3, r8                   
+  54 0046 30 B9	    cmp r3, r2              ;p == 1
+  55 0048 01 44	    bne check_p1_1          ;Se p == 1, saltar if; Se p == 0, p and 1 = 0 e segue o if
+  56 004A 05 58	    b check_p1_0
+  57           	
+  58           	
+  59           	check_p1_1:
+  60 004C 20 BE	    cmp r2, r12             ;p_1 == 1
+  61 004E 0C 44	    bne shift_p             ;saltar if
+  62 0050 48 85	    add r8, r4, r10         ;p += p + M << 32
+  63 0052 D9 95	    adc r9, r5, r11
+  64 0054 09 58	    b shift_p
+  65           	
+  66           	check_p1_0:
+  67           	    
+  68 0056 20 BE	    cmp r2, r12             ;p_1 == 1
+  69 0058 07 40	    beq shift_p             ;saltar if
+  70 005A 03 B4	    mov r3, r8              
+  71 005C 33 8A	    sub r3, r3, r4          ;p -= M_ext << 32
+  72 005E 88 B1	    mov r8, r3
+  73 0060 83 B4	    mov r3, r9
+  74 0062 B3 9A	    sbc r3, r3, r5
+  75 0064 89 B1	    mov r9, r3 
+  76 0066 00 58	    b shift_p 
+  77           	
+  78           	
+  79           	shift_p:
+  80 0068 2C C4	    and r12, r2, r8         ;p_1 = p and 0x1
+  81           	
+  82 006A 03 B4	    mov r3, r8              ;p[0 regist] >> 1 
+  83 006C B3 E8	    lsr r3, r3, #1
+  84 006E 88 B1	    mov r8, r3
+  85           	
+  86 0070 83 B4	    mov r3, r9              ;p[1 regist] >> 1
+  87 0072 33 D8	    rrx r3, r3
+  88 0074 89 B1	    mov r9, r3
+  89           	
+  90 0076 03 B5	    mov r3, r10             ;p[2 regist] >> 1
+  91 0078 33 D8	    rrx r3, r3
+  92 007A 8A B1	    mov r10, r3
+  93           	    
+  94 007C 83 B5	    mov r3, r11             ;p[3 regist] >> 1
+  95 007E 33 D8	    rrx r3, r3
+  96 0080 8B B1	    mov r11, r3
+  97           	
+  98 0082 80 A0	    add r0, r0, #1          ;i++
+  99 0084 DA 5B	    b loop_umull32          ;for (i in 0..32)
+ 100           	
+ 101           	end_loop:
+ 102 0086 00 B4	    mov r0, r8
+ 103 0088 0F B7	    mov pc, lr
+ 104           	
+ 104           	

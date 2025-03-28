@@ -1,7 +1,12 @@
 .data
 
-seed:       .word 1, 0
-result:     .word 17747 , 2055 , 3664 , 15611 , 9816
+    ; The seed and results for testing
+    seed:         .word 1, 0
+    results:      .word 17747, 2055, 3664, 15611, 9816
+
+    ; The addresses for the seed and result variables
+    seed_addr:    .word seed
+    results_addr: .word results
 
 .text
 
