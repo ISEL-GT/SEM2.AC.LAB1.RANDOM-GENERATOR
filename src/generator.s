@@ -67,12 +67,12 @@ check_p1_0:
     
     cmp r2, r12             ;p_1 == 1
     beq shift_p             ;saltar if
-    mov r3, r8              
+    mov r3, r10              
     sub r3, r3, r4          ;p -= M_ext << 32
-    mov r8, r3
-    mov r3, r9
+    mov r10, r3
+    mov r3, r11
     sbc r3, r3, r5
-    mov r9, r3 
+    mov r11, r3 
     b shift_p 
 
 
