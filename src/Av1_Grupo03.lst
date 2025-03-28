@@ -1,69 +1,118 @@
-P16 assembler v1.5 (Feb  9 2024)	c:\Isel\2Semestre\AC\Av1\Av1_Grupo03.lst	Fri Mar 21 09:22:58 2025
+P16 assembler v1.5 (Feb  9 2024)	c:\Isel\2Semestre\AC\SEM2.AC.LAB1.RANDOM-GENERATOR\src\Av1_Grupo03.lst	Fri Mar 28 10:38:00 2025
 
 Sections
 Index   Name            Address   Size
-0       .text           0000      0000 0
+0       .data           0000      000E 14
+1       .text           000E      0078 120
 
 Symbols
 Name                    Type      Value       Section
+check_p1_0              LABEL     0052 82     .text
+check_p1_1              LABEL     0048 72     .text
+end_loop                LABEL     0082 130    .text
+first_if                LABEL     003E 62     .text
+loop_umull32            LABEL     0036 54     .text
+result                  LABEL     0004 4      .data
+seed                    LABEL     0000 0      .data
+shift_p                 LABEL     0064 100    .text
+umull32                 LABEL     000E 14     .text
 
 Code listing
-   1           	/*
-   2           	Código a implementar em C
-   3           	
-   4           	# define N 5
+   1           	.data
+   2           	
+   3          	seed:       .word 1, 0
+   3 0000 01 00 00 00
+   4          	result:     .word 17747 , 2055 , 3664 , 15611 , 9816
+   4 0004 53 45 07 08 50 0E FB 3C 58 26
    5           	
-   6           	uint16_t result [ N ] = { 17747 , 2055 , 3664 , 15611 , 9816 };
+   6           	.text
    7           	
-   8           	uint32_t seed = 1;
-   9           	
-  10           	uint32_t umull32 ( uint32_t M , uint32_t m ) {
-  11           	
-  12           	    int64_t M_ext = M ;
-  13           	    int64_t p = m ;
-  14           	    uint8_t p_1 = 0;
-  15           	
-  16           	    for ( uint16_t i = 0; i < 32; i ++ ) {
-  17           	        if ( ( p & 0 x1 ) == 0 && p_1 == 1 ) {
-  18           	                p += M_ext << 32;
-  19           	        } else if ( ( p & 0 x1 ) == 1 && p_1 == 0 ) {
-  20           	        p -= M_ext << 32;
-  21           	        }
-  22           	        p_1 = p & 0 x1 ;
-  23           	        p > >= 1;
-  24           	    }
-  25           	    return p ;
-  26           	}
-  27           	
-  28           	void srand ( uint32_t nseed ) {
-  29           	
-  30           	    seed = nseed ;
-  31           	}
-  32           	
-  33           	uint16_t rand ( void ) {
-  34           	
-  35           	    seed = ( umull32 ( seed , 214013 ) + 2531011 ) % RAND_MAX ;
-  36           	    return ( seed >> 16 ) ;
-  37           	}
-  38           	
-  39           	int main ( void ) {
-  40           	
-  41           	    uint8_t error = 0;
-  42           	    uint16_t rand_number ;
-  43           	    uint16_t i ;
-  44           	
-  45           	    srand ( 5423 ) ;
-  46           	    for ( i = 0; error == 0 && i < N ; i ++ ) {
-  47           	        rand_number = rand () ;
-  48           	        if ( rand_number != result [ i ] ) {
-  49           	            error = 1;
-  50           	        }
-  51           	    }
-  52           	    return 0;
-  53           	}
-  54           	*/
-  55           	
-  56           	
-  57           	
-  58           	    
-  58           	
+   8           	
+   9           	;código da seed
+  10           	;ldr r0, seed_addr
+  11           	;ldr r2, [r0]
+  12           	;ldr r2, [r0, #2]
+  13           	
+  14           	
+  15           	umull32:                    
+  16 000E 0E 24	    push lr
+  17 0010 04 24	    push r4
+  18 0012 05 24	    push r5
+  19 0014 06 24	    push r6
+  20 0016 07 24	    push r7     
+  21 0018 08 24	    push r8 
+  22 001A 09 24	    push r9
+  23 001C 0A 24	    push r10
+  24 001E 0B 24	    push r11
+  25 0020 0C 24	    push r12          
+  26           	                            ;r[4-7] = M_ext
+  27 0022 04 B0	    mov r4, r0             
+  28 0024 85 B0	    mov r5, r1             
+  29 0026 06 60	    mov r6, #0             
+  30 0028 07 60	    mov r7, #0
+  31           	                            ;r[8-11] = p
+  32 002A 08 B1	    mov r8, r2
+  33 002C 89 B1	    mov r9, r3
+  34 002E 0A 60	    mov r10, #0
+  35 0030 0B 60	    mov r11, #0
+  36           	                            ;r12 = p_1
+  37 0032 0C 60	    mov r12, #0
+  38 0034 00 60	    mov r0, #0              ;r0 = i = 0
+  39           	loop_umull32:               ;for (i in 0..32)
+  40           	                 
+  41 0036 01 62	    mov r1, #32             ;r1 = i = 32
+  42 0038 10 B8	    cmp r1, r0              ;i == 32
+  43 003A 01 4C	    blo first_if
+  44 003C 22 58	    b end_loop              
+  45           	
+  46           	first_if:
+  47 003E 12 60	    mov r2, #1
+  48 0040 03 B4	    mov r3, r8                   
+  49 0042 30 B9	    cmp r3, r2              ;p == 1
+  50 0044 01 44	    bne check_p1_1          ;Se p == 1, saltar if; Se p == 0, p and 1 = 0 e segue o if
+  51 0046 05 58	    b check_p1_0
+  52           	
+  53           	
+  54           	check_p1_1:
+  55 0048 20 BE	    cmp r2, r12             ;p_1 == 1
+  56 004A 0C 44	    bne shift_p             ;saltar if
+  57 004C 48 85	    add r8, r4, r10         ;p += p + M << 32
+  58 004E D9 95	    adc r9, r5, r11
+  59 0050 09 58	    b shift_p
+  60           	
+  61           	check_p1_0:
+  62           	    
+  63 0052 20 BE	    cmp r2, r12             ;p_1 == 1
+  64 0054 07 40	    beq shift_p             ;saltar if
+  65 0056 03 B4	    mov r3, r8              
+  66 0058 33 8A	    sub r3, r3, r4          ;p -= M_ext << 32
+  67 005A 88 B1	    mov r8, r3
+  68 005C 83 B4	    mov r3, r9
+  69 005E B3 9A	    sbc r3, r3, r5
+  70 0060 89 B1	    mov r9, r3 
+  71 0062 00 58	    b shift_p 
+  72           	
+  73           	
+  74           	shift_p:
+  75 0064 2C C4	    and r12, r2, r8
+  76 0066 03 B4	    mov r3, r8
+  77 0068 B3 E8	    lsr r3, r3, #1
+  78 006A 88 B1	    mov r8, r3
+  79 006C 83 B4	    mov r3, r9
+  80 006E 33 D8	    rrx r3, r3
+  81 0070 89 B1	    mov r9, r3
+  82 0072 03 B5	    mov r3, r10 
+  83 0074 33 D8	    rrx r3, r3
+  84 0076 8A B1	    mov r10, r3
+  85 0078 83 B5	    mov r3, r11
+  86 007A 33 D8	    rrx r3, r3
+  87 007C 8B B1	    mov r11, r3
+  88           	
+  89 007E 80 A0	    add r0, r0, #1          ;i++
+  90 0080 DA 5B	    b loop_umull32          ;for (i in 0..32)
+  91           	
+  92           	end_loop:
+  93 0082 00 B4	    mov r0, r8
+  94 0084 0F B7	    mov pc, lr
+  95           	
+  95           	

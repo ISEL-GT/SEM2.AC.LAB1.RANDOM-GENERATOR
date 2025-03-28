@@ -1,60 +1,3 @@
-/*
-Código a implementar em C
-
-# define N 5
-
-uint16_t result [ N ] = { 17747 , 2055 , 3664 , 15611 , 9816 };
-
-uint32_t seed = 1;
-
-uint32_t umull32 ( uint32_t M , uint32_t m ) {
-
-    int64_t M_ext = M ;
-    int64_t p = m ;
-    uint8_t p_1 = 0;
-
-    for ( uint16_t i = 0; i < 32; i ++ ) {
-        if ( ( p & 0 x1 ) == 0 && p_1 == 1 ) {
-                p += M_ext << 32;
-        } else if ( ( p & 0 x1 ) == 1 && p_1 == 0 ) {
-        p -= M_ext << 32;
-        }
-        p_1 = p & 0 x1 ;
-        p > >= 1;
-    }
-    return p ;
-}
-
-void srand ( uint32_t nseed ) {
-
-    seed = nseed ;
-}
-
-uint16_t rand ( void ) {
-
-    seed = ( umull32 ( seed , 214013 ) + 2531011 ) % RAND_MAX ;
-    return ( seed >> 16 ) ;
-}
-
-int main ( void ) {
-
-    uint8_t error = 0;
-    uint16_t rand_number ;
-    uint16_t i ;
-
-    srand ( 5423 ) ;
-    for ( i = 0; error == 0 && i < N ; i ++ ) {
-        rand_number = rand () ;
-        if ( rand_number != result [ i ] ) {
-            error = 1;
-        }
-    }
-    return 0;
-}
-*/
-
-
-
 .data
 
 seed:       .word 1, 0
@@ -64,9 +7,9 @@ result:     .word 17747 , 2055 , 3664 , 15611 , 9816
 
 
 ;código da seed
-ldr r0, seed_addr
-ldr r2, [r0]
-ldr r2, [r0, #2]
+;ldr r0, seed_addr
+;ldr r2, [r0]
+;ldr r2, [r0, #2]
 
 
 umull32:                    
@@ -74,22 +17,79 @@ umull32:
     push r4
     push r5
     push r6
-    push r7                 ;guardar os registos r4-r7
+    push r7     
+    push r8 
+    push r9
+    push r10
+    push r11
+    push r12          
+                            ;r[4-7] = M_ext
+    mov r4, r0             
+    mov r5, r1             
+    mov r6, #0             
+    mov r7, #0
+                            ;r[8-11] = p
+    mov r8, r2
+    mov r9, r3
+    mov r10, #0
+    mov r11, #0
+                            ;r12 = p_1
+    mov r12, #0
+    mov r0, #0              ;r0 = i = 0
+loop_umull32:               ;for (i in 0..32)
+                 
+    mov r1, #32             ;r1 = i = 32
+    cmp r1, r0              ;i == 32
+    blo first_if
+    b end_loop              
 
-    mov r4, r0              ;r4 = M
-    mov r5, r1              ;r5 = m
-    mov r6, #0              ;p_1 = 0
-    mov r7, #32             ;r7 = nº de loops
-    mov r8, #1              ;valor temporário de 0x1
+first_if:
+    mov r2, #1
+    mov r3, r8                   
+    cmp r3, r2              ;p == 1
+    bne check_p1_1          ;Se p == 1, saltar if; Se p == 0, p and 1 = 0 e segue o if
+    b check_p1_0
 
-loop_umull32:
-    and r5, r8              ;operação de AND entre m && 1 
-    add r5, r5, #0          ;M + 0 para confirmar se o bit menos significativo é 0 ou 1
-    beq check_p1            ;Se r5 = 0, verificar o p1
 
-check_p1:
-    cmp r6, r8              ;p_1 == 1
-    bne shift_p             ;
-    add r5, r5, r4          ;p += p + M
-    lsl r5, #32             ;p << 32
+check_p1_1:
+    cmp r2, r12             ;p_1 == 1
+    bne shift_p             ;saltar if
+    add r8, r4, r10         ;p += p + M << 32
+    adc r9, r5, r11
+    b shift_p
+
+check_p1_0:
+    
+    cmp r2, r12             ;p_1 == 1
+    beq shift_p             ;saltar if
+    mov r3, r8              
+    sub r3, r3, r4          ;p -= M_ext << 32
+    mov r8, r3
+    mov r3, r9
+    sbc r3, r3, r5
+    mov r9, r3 
+    b shift_p 
+
+
+shift_p:
+    and r12, r2, r8
+    mov r3, r8
+    lsr r3, r3, #1
+    mov r8, r3
+    mov r3, r9
+    rrx r3, r3
+    mov r9, r3
+    mov r3, r10 
+    rrx r3, r3
+    mov r10, r3
+    mov r3, r11
+    rrx r3, r3
+    mov r11, r3
+
+    add r0, r0, #1          ;i++
+    b loop_umull32          ;for (i in 0..32)
+
+end_loop:
+    mov r0, r8
+    mov pc, lr
 
