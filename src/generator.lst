@@ -1,23 +1,37 @@
-P16 assembler v1.5 (Feb  9 2024)	c:\dev\Assembly\SEM2.AC.LAB1.RANDOM-GENERATOR\src\generator.lst	Fri Mar 28 11:58:06 2025
+P16 assembler v1.5 (Feb  9 2024)	c:\dev\Assembly\SEM2.AC.LAB1.RANDOM-GENERATOR\src\generator.lst	Mon Mar 31 21:56:26 2025
 
 Sections
 Index   Name            Address   Size
 0       .data           0000      0012 18
-1       .text           0012      0078 120
+1       .text           0012      014E 334
 
 Symbols
 Name                    Type      Value       Section
-check_p1_0              LABEL     0056 86     .text
-check_p1_1              LABEL     004C 76     .text
-end_loop                LABEL     0086 134    .text
-first_if                LABEL     0042 66     .text
-loop_umull32            LABEL     003A 58     .text
+end                     LABEL     0160 352    .text
+if_end                  LABEL     00F4 244    .text
+if_equal_higher_bits    LABEL     00E4 228    .text
+if_equal_lower_bits     LABEL     00EA 234    .text
+if_not_equal            LABEL     00F0 240    .text
+main                    LABEL     0100 256    .text
+main_for                LABEL     0120 288    .text
+main_for_condition      LABEL     0112 274    .text
+main_for_end            LABEL     0132 306    .text
+mismatch                LABEL     012E 302    .text
+N                       ABSOLUTE  0005 5      .data
+rand                    LABEL     00B6 182    .text
+restore_registers       LABEL     014C 332    .text
 results                 LABEL     0004 4      .data
 results_addr            LABEL     0010 16     .data
+save_registers          LABEL     0138 312    .text
 seed                    LABEL     0000 0      .data
 seed_addr               LABEL     000E 14     .data
-shift_p                 LABEL     0068 104    .text
-umull32                 LABEL     0012 18     .text
+srand                   LABEL     00A8 168    .text
+umull32                 LABEL     0014 20     .text
+umull32_for             LABEL     0036 54     .text
+umull32_for_condition   LABEL     0028 40     .text
+umull32_for_else_if_1   LABEL     006C 108    .text
+umull32_for_end         LABEL     00A4 164    .text
+umull32_for_if_end      LABEL     0094 148    .text
 
 Code listing
    1           	.data
@@ -32,98 +46,381 @@ Code listing
    8 000E 00 00	    seed_addr:    .word seed
    9 0010 04 00	    results_addr: .word results
   10           	
-  11           	.text
+  11          	    .equ N, 5  ; "results" array size
   12           	
-  13           	
-  14           	;código da seed
-  15           	;ldr r0, seed_addr
-  16           	;ldr r2, [r0]
-  17           	;ldr r2, [r0, #2]
-  18           	
-  19           	
-  20           	umull32:                    
-  21 0012 0E 24	    push lr
-  22 0014 04 24	    push r4
-  23 0016 05 24	    push r5
-  24 0018 06 24	    push r6
-  25 001A 07 24	    push r7     
-  26 001C 08 24	    push r8 
-  27 001E 09 24	    push r9
-  28 0020 0A 24	    push r10
-  29 0022 0B 24	    push r11
-  30 0024 0C 24	    push r12          
-  31           	                            ;r[4-7] = M_ext
-  32 0026 04 B0	    mov r4, r0             
-  33 0028 85 B0	    mov r5, r1             
-  34 002A 06 60	    mov r6, #0             
-  35 002C 07 60	    mov r7, #0
-  36           	                            ;r[8-11] = p
-  37 002E 08 B1	    mov r8, r2
-  38 0030 89 B1	    mov r9, r3
-  39 0032 0A 60	    mov r10, #0
-  40 0034 0B 60	    mov r11, #0
-  41           	                            ;r12 = p_1
-  42 0036 0C 60	    mov r12, #0
-  43 0038 00 60	    mov r0, #0              ;r0 = i = 0
-  44           	loop_umull32:               ;for (i in 0..32)
-  45           	                 
-  46 003A 01 62	    mov r1, #32             ;r1 = i = 32
-  47 003C 10 B8	    cmp r1, r0              ;i == 32
-  48 003E 01 4C	    blo first_if
-  49 0040 22 58	    b end_loop              
+  13           	.text
+  14           	
+  15 0012 76 5C	bl main  ; Run the main program
+  16           	
+  17           	/**
+  18           	 * Calculates a pseudo-random number given two multiplying parameters.
+  19           	 *
+  20           	 * Function register mappings:
+  21           	 * - R0, R1, R2, R3: Extended multiplicand/parameters/return
+  22           	 * - R4, R5, R6, R7: Result
+  23           	 * - R8: Previous least significant bit
+  24           	 * - R9: i (iteration variable)
+  25           	 * - R10, R11, R12: helpers 
+  26           	 * 
+  27           	 * @param multiplicand The multiplicand, stored at {R0, R1}
+  28           	 * @param multiplier The multiplifer, stored at {R2, R3}
+  29           	 *
+  30           	 * @return The calculated random number, stored at {R0, R1}
+  31           	 */
+  32           	umull32:
+  33           	
+  34 0014 91 5C	    bl save_registers;
+  35           	
+  36           	    ; Extend the multiplier to r4 - r7
+  37 0016 04 B1	    mov R4, R2
+  38 0018 85 B1	    mov R5, R3
+  39 001A 06 60	    mov R6, #0x0
+  40 001C 07 60	    mov R7, #0x0
+  41           	
+  42           	    ; Extend the multiplicand from r0 - r3
+  43 001E 02 60	    mov R2, #0x0
+  44 0020 03 60	    mov R3, #0x0
+  45           	
+  46           	    ; Setup the previous_lsb and i
+  47 0022 08 60	    mov R8, #0x0
+  48 0024 09 60	    mov R9, #0x0
+  49 0026 00 58	    b umull32_for_condition
   50           	
-  51           	first_if:
-  52 0042 12 60	    mov r2, #1
-  53 0044 03 B4	    mov r3, r8                   
-  54 0046 30 B9	    cmp r3, r2              ;p == 1
-  55 0048 01 44	    bne check_p1_1          ;Se p == 1, saltar if; Se p == 0, p and 1 = 0 e segue o if
-  56 004A 05 58	    b check_p1_0
-  57           	
-  58           	
-  59           	check_p1_1:
-  60 004C 20 BE	    cmp r2, r12             ;p_1 == 1
-  61 004E 0C 44	    bne shift_p             ;saltar if
-  62 0050 48 85	    add r8, r4, r10         ;p += p + M << 32
-  63 0052 D9 95	    adc r9, r5, r11
-  64 0054 09 58	    b shift_p
-  65           	
-  66           	check_p1_0:
-  67           	    
-  68 0056 20 BE	    cmp r2, r12             ;p_1 == 1
-  69 0058 07 40	    beq shift_p             ;saltar if
-  70 005A 03 B4	    mov r3, r8              
-  71 005C 33 8A	    sub r3, r3, r4          ;p -= M_ext << 32
-  72 005E 88 B1	    mov r8, r3
-  73 0060 83 B4	    mov r3, r9
-  74 0062 B3 9A	    sbc r3, r3, r5
-  75 0064 89 B1	    mov r9, r3 
-  76 0066 00 58	    b shift_p 
-  77           	
+  51           	    umull32_for_condition:
+  52           	
+  53 0028 0C 62	        mov R12, #32
+  54           	
+  55           	        ; Since we can only pass 3 bits into the second argument of
+  56           	        ; cmp, use R0 temporarily
+  57 002A 00 24	        push R0
+  58 002C 00 B6	        mov R0, R12
+  59 002E 80 BC	        cmp R0, R9
+  60 0030 00 04	        pop R0
+  61           	
+  62 0032 01 4C	        blo umull32_for
+  63 0034 37 58	        b umull32_for_end
+  64           	
+  65           	    umull32_for:
+  66           	
+  67 0036 80 5C	        bl save_registers
+  68           	
+  69           	        ; Increment i
+  70 0038 07 24	        push R7
+  71 003A 87 B4	        mov R7, R9
+  72 003C F9 A0	        add R9, R7, #0x1  ; i++ 
+  73 003E 07 04	        pop R7
+  74           	
+  75           	        ; Useful registries for comparisons
+  76 0040 1B 60	        mov R11, #0x1
+  77 0042 0A 60	        mov R10, #0x0
   78           	
-  79           	shift_p:
-  80 0068 2C C4	    and r12, r2, r8         ;p_1 = p and 0x1
-  81           	
-  82 006A 03 B4	    mov r3, r8              ;p[0 regist] >> 1 
-  83 006C B3 E8	    lsr r3, r3, #1
-  84 006E 88 B1	    mov r8, r3
+  79           	        ; Until we need the R0 and R1 values, store them in stack so we can
+  80           	        ; pass 3 bit registers into the comparisons
+  81 0044 00 24	        push R0
+  82 0046 01 24	        push R1
+  83 0048 00 B5	        mov R0, R10
+  84 004A 81 B5	        mov R1, R11
   85           	
-  86 0070 83 B4	    mov r3, r9              ;p[1 regist] >> 1
-  87 0072 33 D8	    rrx r3, r3
-  88 0074 89 B1	    mov r9, r3
+  86           	        ; IF (result & 0x1) == 0 && previous_lsb == 1
+  87 004C CC C5	        and R12, R4, R11
+  88 004E 00 BE	        cmp R0, R12
   89           	
-  90 0076 03 B5	    mov r3, r10             ;p[2 regist] >> 1
-  91 0078 33 D8	    rrx r3, r3
-  92 007A 8A B1	    mov r10, r3
-  93           	    
-  94 007C 83 B5	    mov r3, r11             ;p[3 regist] >> 1
-  95 007E 33 D8	    rrx r3, r3
-  96 0080 8B B1	    mov r11, r3
+  90 0050 0D 44	        bne umull32_for_else_if_1
+  91 0052 10 BC	        cmp R1, R8
+  92 0054 0B 44	        bne umull32_for_else_if_1
+  93           	
+  94           	        ; Get the value again to process
+  95 0056 01 04	        pop R1
+  96 0058 00 04	        pop R0
   97           	
-  98 0082 80 A0	    add r0, r0, #1          ;i++
-  99 0084 DA 5B	    b loop_umull32          ;for (i in 0..32)
- 100           	
- 101           	end_loop:
- 102 0086 00 B4	    mov r0, r8
- 103 0088 0F B7	    mov pc, lr
- 104           	
- 104           	
+  98           	        ; IF BODY
+  99 005A 02 B0	        mov R2, R0
+ 100 005C 83 B0	        mov R3, R1
+ 101 005E 00 60	        mov R0, #0x0
+ 102 0060 01 60	        mov R1, #0x0
+ 103           	
+ 104 0062 44 80	        add R4, R4, R0
+ 105 0064 D5 90	        adc R5, R5, R1
+ 106 0066 66 91	        adc R6, R6, R2
+ 107 0068 F7 91	        adc R7, R7, R3
+ 108           	        
+ 109 006A 14 58	        b umull32_for_if_end
+ 110           	
+ 111           	        umull32_for_else_if_1:
+ 112           	        
+ 113           	            ; Until we need the R0 and R1 values, store them in stack so we can
+ 114           	            ; pass 3 bit registers into the comparisons
+ 115 006C 00 24	            push R0
+ 116 006E 01 24	            push R1
+ 117 0070 00 B5	            mov R0, R10
+ 118 0072 81 B5	            mov R1, R11
+ 119           	
+ 120           	            ; IF (result & 0x1) == 1 && previous_lsb == 0
+ 121 0074 CC C5	            and R12, R4, R11
+ 122 0076 10 BE	            cmp R1, R12
+ 123           	
+ 124 0078 0D 44	            bne umull32_for_if_end
+ 125 007A 00 BC	            cmp R0, R8
+ 126 007C 0B 44	            bne umull32_for_if_end
+ 127           	
+ 128           	             ; Get the value again to process
+ 129 007E 01 04	            pop R1
+ 130 0080 00 04	            pop R0
+ 131           	
+ 132           	            ; IF BODY
+ 133 0082 02 B0	            mov R2, R0
+ 134 0084 83 B0	            mov R3, R1
+ 135 0086 00 60	            mov R0, #0x0
+ 136 0088 01 60	            mov R1, #0x0
+ 137           	
+ 138 008A 44 88	            sub R4, R4, R0
+ 139 008C D5 98	            sbc R5, R5, R1
+ 140 008E 66 99	            sbc R6, R6, R2
+ 141 0090 F7 99	            sbc R7, R7, R3
+ 142           	
+ 143 0092 00 58	            b umull32_for_if_end
+ 144           	
+ 145           	        umull32_for_if_end:
+ 146           	
+ 147 0094 C8 C5	            and R8, R4, R11
+ 148           	
+ 149           	            ; LSR the highest registry and then rotate the rest
+ 150 0096 F7 E8	            lsr R7, R7, #1
+ 151 0098 66 D8	            rrx R6, R6
+ 152 009A 55 D8	            rrx R5, R5
+ 153 009C 44 D8	            rrx R4, R4
+ 154           	
+ 155 009E 00 B2	            mov R0, R4
+ 156 00A0 81 B2	            mov R1, R5
+ 157 00A2 C2 5B	            b umull32_for_condition
+ 158           	
+ 159           	        umull32_for_end: 
+ 160           	
+ 161 00A4 53 5C	    bl restore_registers
+ 162 00A6 0F B7	    mov pc, lr
+ 163           	
+ 164           	
+ 165           	/**
+ 166           	 * Sets a new random seed given a generated number
+ 167           	 * 
+ 168           	 * Registry mappings:
+ 169           	 * - R0, R1: Parameter (seed)
+ 170           	 * - R2: Seed address
+ 171           	 * - R3: Sum content
+ 172           	 *
+ 173           	 * @param seed A 32-bit integer acting as a seed 
+ 174           	 */
+ 175           	srand:
+ 176           	
+ 177 00A8 47 5C	    bl save_registers
+ 178           	
+ 179 00AA E2 60	    mov R2, #seed_addr  ; Grab the address of the seed
+ 180 00AC 23 A1	    add R3, R2, #2  ; Get the MSB index of the seed
+ 181           	
+ 182           	    ; Places the R0 contents on R2 (seed addr)
+ 183           	    ; Places the R1 contents on R3 (16 bits after seed)
+ 184 00AE 20 20	    str R0, [R2]
+ 185 00B0 31 20	    str R1, [R3]
+ 186           	
+ 187 00B2 4C 5C	    bl restore_registers
+ 188 00B4 0F B7	    mov pc, lr
+ 189           	
+ 190           	
+ 191           	/**
+ 192           	 * Generates a new random number and sets it as the seed
+ 193           	 *
+ 194           	 * Registry mappings:
+ 195           	 * - R0, R1: umull32 parameters/return
+ 196           	 * - R2, R3: umull232 parameters
+ 197           	 * - R4, R5: Seed/Sum values 
+ 198           	 * - R6, R7: Seed addresses
+ 199           	 * - R8, R9: umull32 mod
+ 200           	 * - R10, R11: MAX RAND / 0x00269EC3
+ 201           	 *
+ 202           	 * @return The upper 16 bits of the generated number
+ 203           	 */
+ 204           	rand:
+ 205           	
+ 206 00B6 40 5C	    bl save_registers
+ 207           	
+ 208           	    ; Loads the seed address into the R6 register
+ 209           	    ; and calculates the upper bits address
+ 210 00B8 E6 60	    mov R6, #seed_addr
+ 211 00BA 67 A1	    add R7, R6, #2
+ 212           	
+ 213           	    ; Loads the seed value into the {R4, R5} registers
+ 214 00BC 64 00	    ldr R4, [R6]
+ 215 00BE 75 00	    ldr R5, [R7]
+ 216           	
+ 217           	    ; Sets the multiplicand parameters
+ 218 00C0 00 B2	    mov R0, R4
+ 219 00C2 81 B2	    mov R1, R5
+ 220           	
+ 221           	    ; Sets the multiplier parameters (214013) (0x000343FD)
+ 222 00C4 D2 6F	    mov R2, #0xFD
+ 223 00C6 32 74	    movt R2, #0x43
+ 224 00C8 33 60	    mov R3, #0x03
+ 225           	
+ 226           	    ; Moves the 2531011 (0x00269EC3) number into a register for later usage
+ 227 00CA 3A 6C	    mov R10, #0xC3
+ 228 00CC EA 79	    movt R10, #0x9E
+ 229 00CE 6B 62	    mov R11, #0x26
+ 230           	
+ 231           	    ; Adds the umull32 return value and a constant together
+ 232 00D0 04 85	    add R4, R0, R10
+ 233 00D2 85 95	    adc R5, R0, R11
+ 234           	
+ 235 00D4 9F 5F	    bl umull32
+ 236           	
+ 237           	    ; Loads a 32-bit number with the maximum integer limit
+ 238 00D6 FA 6F	    mov R10, #0xFF
+ 239 00D8 FA 7F	    movt R10, #0xFF
+ 240 00DA FB 6F	    mov R11, #0xFF
+ 241 00DC FB 7F	    movt R11, #0xFF
+ 242           	
+ 243           	    ; Checks if the max rand is higher than the addition
+ 244           	    ; (Check the higher bits first to be faster)
+ 245 00DE D0 BD	    cmp R5, R11
+ 246 00E0 01 40	    bzs if_equal_higher_bits
+ 247 00E2 06 58	    b if_not_equal
+ 248           	
+ 249           	    ; If the max rand is higher, then check the lower bits
+ 250           	    if_equal_higher_bits:
+ 251           	
+ 252 00E4 40 BD	        cmp R4, R10
+ 253 00E6 01 40	        bzs if_equal_lower_bits
+ 254 00E8 03 58	        b if_not_equal
+ 255           	
+ 256           	        ; If the bits are all equal, then set the mod to 0
+ 257           	        if_equal_lower_bits:
+ 258           	
+ 259 00EA 08 60	            mov R8, #0x00
+ 260 00EC 09 60	            mov R9, #0x00
+ 261 00EE 02 58	            b if_end
+ 262           	            
+ 263           	    ; If the bits aren't all equal, then just use {R4, R5}
+ 264           	    if_not_equal:
+ 265 00F0 08 B2	        mov R8, R4
+ 266 00F2 89 B2	        mov R9, R5
+ 267           	
+ 268           	    if_end:
+ 269           	
+ 270           	    ; Loads the calculated value into memory
+ 271 00F4 68 20	    str R8, [R6]
+ 272 00F6 79 20	    str R9, [R7]
+ 273           	
+ 274           	    ; Return the shifted random seed
+ 275 00F8 01 60	    mov R1, #0x0
+ 276 00FA 00 B4	    mov R0, R8
+ 277           	
+ 278 00FC 27 5C	    bl restore_registers
+ 279 00FE 0F B7	    mov pc, lr
+ 280           	
+ 281           	
+ 282           	/**
+ 283           	 * Main entrypoint of the program. Generates a new random
+ 284           	 * number until the error flag fires due to a mismatch.
+ 285           	 *
+ 286           	 * Register mappings:
+ 287           	 * - R0, R1: srand and rand parameters
+ 288           	 * - R2: (uint8_t) mismatch_detected variable
+ 289           	 * - R3: (uint16_t) random_number variable
+ 290           	 * - R4: (uint16_t) for loop iterable variable
+ 291           	 * - R5: zero
+ 292           	 * - R6: maximum array size
+ 293           	 * - R7: expected number array address
+ 294           	 * - R8: expected number based on index
+ 295           	 */
+ 296           	main:
+ 297           	
+ 298 0100 1B 5C	    bl save_registers
+ 299           	
+ 300           	    ; Initialises the error detection with the 0 flag.
+ 301           	    ; 0 -> No errors
+ 302           	    ; 1 -> Mismatch detected
+ 303 0102 02 60	    mov R2, #0x0
+ 304 0104 03 60	    mov R3, #0x0
+ 305 0106 56 60	    mov R6, #N
+ 306           	    
+ 307           	    ; Call srand(5423)
+ 308 0108 E0 62	    mov R0, #0x2E
+ 309 010A 50 71	    movt R0, #0x15 
+ 310 010C CD 5F	    bl srand
+ 311           	
+ 312           	    ; Start the for loop until there's a mismatch
+ 313 010E 04 60	    mov R4, #0x0  ; i = 0
+ 314 0110 00 58	    b main_for_condition
+ 315           	
+ 316           	    main_for_condition:
+ 317           	
+ 318           	        ; !(mismatch_detected == 0 && i < N)
+ 319 0112 05 60	        mov R5, #0x0
+ 320 0114 A0 BA	        cmp R2, R5
+ 321 0116 0D 44	        bne main_for_end
+ 322           	
+ 323 0118 40 BB	        cmp R4, R6
+ 324 011A 0B 48	        bhs main_for_end
+ 325           	
+ 326           	        ; If the condition succeeds, then go to the body
+ 327 011C 01 40	        beq main_for
+ 328 011E 09 58	        b main_for_end
+ 329           	
+ 330           	    main_for:
+ 331           	
+ 332           	        ; Load the random number variable with the return value
+ 333 0120 CA 5F	        bl rand
+ 334 0122 03 B0	        mov R3, R0
+ 335           	        
+ 336           	        ; Load the results address array
+ 337 0124 07 61	        mov R7, #results_addr
+ 338 0126 78 12	        ldr R8, [R7, R4]
+ 339           	
+ 340 0128 30 BC	        cmp R3, R8
+ 341 012A 01 44	        bne mismatch
+ 342 012C F2 5B	        b main_for_condition
+ 343           	
+ 344           	        mismatch:
+ 345 012E 12 60	            mov R2, #0x1
+ 346 0130 F0 5B	            b main_for_condition
+ 347           	
+ 348           	
+ 349           	    main_for_end:
+ 350           	
+ 351 0132 00 60	    mov R0, #0x0
+ 352           	
+ 353 0134 0B 5C	    bl restore_registers
+ 354 0136 0F B7	    mov pc, lr
+ 355           	
+ 356           	/**
+ 357           	 * Save the values on the registers [r4-r12] into the stack
+ 358           	 */
+ 359           	save_registers:
+ 360 0138 04 24	    push r4
+ 361 013A 05 24	    push r5
+ 362 013C 06 24	    push r6
+ 363 013E 07 24	    push r7
+ 364 0140 08 24	    push r8
+ 365 0142 09 24	    push r9
+ 366 0144 0A 24	    push r10
+ 367 0146 0B 24	    push r11
+ 368 0148 0C 24	    push r12
+ 369 014A 0F B7	    mov pc, lr
+ 370           	
+ 371           	/**
+ 372           	 * Restore the values on the registers [r4-r12] from the stack
+ 373           	 */
+ 374           	restore_registers:
+ 375 014C 0C 04	    pop r12
+ 376 014E 0B 04	    pop r11
+ 377 0150 0A 04	    pop r10
+ 378 0152 09 04	    pop r9
+ 379 0154 08 04	    pop r8
+ 380 0156 07 04	    pop r7
+ 381 0158 06 04	    pop r6
+ 382 015A 05 04	    pop r5
+ 383 015C 04 04	    pop r4
+ 384 015E 0F B7	    mov pc, lr
+ 385           	
+ 386           	
+ 387           	end:
+ 387           	
